@@ -48,6 +48,40 @@ function ensureSafeUrl(product: ScoutedProduct): string {
   return url;
 }
 
+// 辅助函数：验证和清理图片URL
+function validateImageUrl(imageUrl: string | undefined): string | undefined {
+  if (!imageUrl || typeof imageUrl !== 'string') {
+    return undefined;
+  }
+  
+  const trimmed = imageUrl.trim();
+  
+  // 必须是 HTTP 或 HTTPS URL
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+    return undefined;
+  }
+  
+  // 优先使用亚马逊CDN链接（m.media-amazon.com）
+  if (trimmed.includes('m.media-amazon.com') || trimmed.includes('images-na.ssl-images-amazon.com')) {
+    return trimmed;
+  }
+  
+  // 也接受其他常见图片格式的URL（来自Google搜索等）
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+  const hasImageExtension = imageExtensions.some(ext => trimmed.toLowerCase().includes(ext));
+  
+  if (hasImageExtension) {
+    return trimmed;
+  }
+  
+  // 如果URL看起来像图片URL（包含image或img），也接受
+  if (trimmed.toLowerCase().includes('image') || trimmed.toLowerCase().includes('img')) {
+    return trimmed;
+  }
+  
+  return undefined;
+}
+
 /**
  * 从Redis加载历史记录
  */
@@ -137,7 +171,7 @@ export async function scoutProducts(
           "reasoning": "推荐理由...",
           "requiredTech": ["技术1", "技术2"],
           "url": "Provide an Amazon Search URL (e.g., https://www.amazon.com/s?k=Keywords). DO NOT guess specific /dp/ ASIN links.",
-          "imageUrl": "Product Image URL (Try to find a representative image URL, else leave empty)"
+          "imageUrl": "CRITICAL: Use Google Search to find REAL Amazon product image URLs. Search for '[product name] Amazon image' and look for URLs from m.media-amazon.com or Google Image Search results. Only provide actual image URLs (http:// or https://), or leave empty if no valid image found. DO NOT guess or invent image URLs."
         }
       ]
     }
@@ -171,7 +205,8 @@ export async function scoutProducts(
       return !isDuplicate;
     }).map(p => ({
       ...p,
-      url: ensureSafeUrl(p) // 强制修复链接
+      url: ensureSafeUrl(p), // 强制修复链接
+      imageUrl: validateImageUrl(p.imageUrl) // 验证和清理图片URL
     }));
 
     // 截取前 10 个（从6个改为10个）

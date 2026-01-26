@@ -19,11 +19,13 @@ const TechBadge: React.FC<{ label: string; type?: 'required' | 'missing' }> = ({
 const ProductCard: React.FC<{ product: ScoutedProduct }> = ({ product }) => {
   const isHighMatch = product.matchScore >= 80;
   const matchColor = isHighMatch ? 'text-green-600' : product.matchScore >= 60 ? 'text-yellow-600' : 'text-slate-400';
+  const [imageError, setImageError] = React.useState(false);
+  const [imageLoading, setImageLoading] = React.useState(true);
   
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col h-full">
       <div className="flex justify-between items-start mb-3">
-        <div>
+        <div className="flex-1">
             {product.isNewRelease && (
                  <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide mb-2 inline-block">
                     趋势 / 新品
@@ -36,13 +38,43 @@ const ProductCard: React.FC<{ product: ScoutedProduct }> = ({ product }) => {
                 <span className="flex items-center text-yellow-500">★ {product.amazonRating || 'N/A'}</span>
             </div>
         </div>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end ml-4">
             <div className={`text-2xl font-black ${matchColor}`}>
                 {product.matchScore}%
             </div>
             <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">匹配度</span>
         </div>
       </div>
+      
+      {/* 产品图片 - 添加在标题和价格信息下方 */}
+      {product.imageUrl && !imageError ? (
+        <div className="mb-4 w-full aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200 relative">
+          {imageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
+              <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+          )}
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              imageLoading ? 'opacity-0' : 'opacity-100'
+            }`}
+            onLoad={() => setImageLoading(false)}
+            onError={() => {
+              setImageError(true);
+              setImageLoading(false);
+            }}
+          />
+        </div>
+      ) : product.imageUrl && imageError ? (
+        <div className="mb-4 w-full aspect-square bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+          <div className="text-center text-slate-400">
+            <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+            <p className="text-xs">图片加载失败</p>
+          </div>
+        </div>
+      ) : null}
       
       <p className="text-slate-600 text-sm mb-4 line-clamp-3 flex-grow">
         {product.description}
