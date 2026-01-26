@@ -4,10 +4,37 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { generateToken, storeToken } from '../lib/auth.js';
 
-// 简单的token生成（生产环境建议使用JWT）
-function generateToken(): string {
-  return Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64');
+// 动态导入Redis客户端（用于存储token）
+async function getKV() {
+  try {
+    const redisUrl = process.env.history_REDIS_URL || 
+                     process.env.KV_REST_API_URL || 
+                     process.env.REDIS_URL || 
+                     process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.history_REDIS_TOKEN || 
+                       process.env.KV_REST_API_TOKEN || 
+                       process.env.REDIS_TOKEN || 
+                       process.env.UPSTASH_REDIS_REST_TOKEN;
+    
+    if (!redisUrl) {
+      return null; // 无Redis，将使用内存存储
+    }
+    
+    const { createClient } = await import('redis');
+    const clientConfig: any = { url: redisUrl };
+    if (redisToken) {
+      clientConfig.token = redisToken;
+    }
+    
+    const client = createClient(clientConfig);
+    await client.connect();
+    return client;
+  } catch (e: any) {
+    console.warn('Redis未配置或连接失败，将使用内存存储token:', e.message);
+    return null;
+  }
 }
 
 export default async function handler(
@@ -29,7 +56,7 @@ export default async function handler(
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminPassword) {
-      console.error('ADMIN_PASSWORD环境变量未设置');
+      console.error('管理员认证配置错误');
       return res.status(500).json({ error: '服务器配置错误' });
     }
 
@@ -38,9 +65,18 @@ export default async function handler(
       return res.status(401).json({ error: '密码错误' });
     }
 
-    // 生成token（有效期24小时）
+    // 生成安全的token（使用加密安全的随机数）
     const token = generateToken();
     const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24小时后
+
+    // 存储token（优先使用Redis，否则使用内存）
+    const kv = await getKV();
+    await storeToken(token, expiresAt, kv);
+
+    // 如果使用了Redis，关闭连接
+    if (kv) {
+      await kv.quit().catch(() => {}); // 忽略关闭错误
+    }
 
     return res.status(200).json({
       success: true,

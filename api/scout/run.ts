@@ -5,19 +5,8 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { scoutProducts, sendEmail, saveHistory } from '../lib/scout.js';
-
-// 简单的token验证（生产环境建议使用JWT）
-function verifyToken(token: string | undefined): boolean {
-  if (!token) return false;
-  // 这里可以添加更复杂的token验证逻辑
-  // 目前简单检查token是否存在且格式正确
-  try {
-    Buffer.from(token, 'base64');
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { verifyToken } from '../lib/auth.js';
+import { checkRateLimit } from '../lib/rateLimit.js';
 
 // 动态导入Redis客户端
 async function getKV() {
@@ -74,8 +63,34 @@ export default async function handler(
   const authHeader = req.headers.authorization;
   const token = authHeader?.replace('Bearer ', '');
   
-  if (!verifyToken(token)) {
+  // 获取KV实例（用于token验证）
+  const kv = await getKV();
+  
+  // 验证token（优先使用Redis验证，否则使用内存验证）
+  const isValidToken = await verifyToken(token, kv);
+  
+  if (!isValidToken) {
+    // 如果使用了Redis，关闭连接
+    if (kv) {
+      await kv.quit().catch(() => {}); // 忽略关闭错误
+    }
     return res.status(401).json({ error: '未授权，请先验证密码' });
+  }
+
+  // 检查速率限制（每小时最多10次，每天最多20次）
+  const rateLimitResult = await checkRateLimit(kv);
+  if (!rateLimitResult.allowed) {
+    // 如果使用了Redis，关闭连接
+    if (kv) {
+      await kv.quit().catch(() => {}); // 忽略关闭错误
+    }
+    return res.status(429).json({ 
+      error: rateLimitResult.message || '超过次数，请隔天再试',
+      hourlyCount: rateLimitResult.hourlyCount,
+      dailyCount: rateLimitResult.dailyCount,
+      hourlyLimit: 10,
+      dailyLimit: 20
+    });
   }
 
   try {
@@ -100,17 +115,18 @@ export default async function handler(
 
     console.log('开始执行手动产品扫描...');
 
-    // 获取KV实例
-    const kv = await getKV();
+    // 使用已有的KV实例（如果之前获取了）
+    // 如果没有，重新获取（用于历史记录存储）
+    const kvForHistory = kv || await getKV();
 
     // 执行扫描
-    const report = await scoutProducts(geminiKey!, kv);
+    const report = await scoutProducts(geminiKey!, kvForHistory);
 
     console.log(`扫描完成，找到 ${report.products.length} 个产品。`);
 
     // 保存历史记录
-    if (report.products.length > 0 && kv) {
-      await saveHistory(kv, report.products);
+    if (report.products.length > 0 && kvForHistory) {
+      await saveHistory(kvForHistory, report.products);
     }
 
     // 发送邮件
@@ -124,6 +140,14 @@ export default async function handler(
 
     console.log('手动扫描任务完成。');
 
+    // 关闭Redis连接（如果使用了）
+    if (kvForHistory && kvForHistory !== kv) {
+      await kvForHistory.quit().catch(() => {});
+    }
+    if (kv) {
+      await kv.quit().catch(() => {});
+    }
+
     return res.status(200).json({
       success: true,
       message: '扫描完成',
@@ -132,6 +156,12 @@ export default async function handler(
 
   } catch (error: any) {
     console.error('扫描失败:', error);
+    
+    // 确保关闭Redis连接
+    if (kv) {
+      await kv.quit().catch(() => {});
+    }
+    
     const errorMessage = error.message || '未知错误';
     const errorStack = process.env.NODE_ENV === 'development' ? error.stack : undefined;
     

@@ -80,6 +80,16 @@ function App() {
           alert('认证已过期，请重新验证密码');
           return;
         }
+        
+        if (response.status === 429) {
+          // 速率限制错误
+          const rateLimitInfo = data.hourlyCount !== undefined 
+            ? `\n\n当前使用情况：\n每小时: ${data.hourlyCount}/${data.hourlyLimit} 次\n每天: ${data.dailyCount}/${data.dailyLimit} 次`
+            : '';
+          alert(`${data.error || '超过次数，请隔天再试'}${rateLimitInfo}`);
+          return;
+        }
+        
         throw new Error(data.error || `扫描失败 (状态码: ${response.status})`);
       }
 
