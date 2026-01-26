@@ -49,13 +49,19 @@ function ensureSafeUrl(product: ScoutedProduct): string {
 }
 
 /**
- * 从Vercel KV加载历史记录
+ * 从Redis加载历史记录
  */
 export async function loadHistory(kv: any): Promise<string[]> {
   try {
     if (kv) {
-      const history = await kv.get<string[]>('scout_history');
-      return history || [];
+      const historyJson = await kv.get('scout_history');
+      if (historyJson) {
+        // Redis返回的是字符串，需要解析JSON
+        const history = typeof historyJson === 'string' 
+          ? JSON.parse(historyJson) 
+          : historyJson;
+        return Array.isArray(history) ? history : [];
+      }
     }
   } catch (e: any) {
     console.warn("读取历史记录失败，将创建新记录:", e.message);
@@ -64,7 +70,7 @@ export async function loadHistory(kv: any): Promise<string[]> {
 }
 
 /**
- * 保存历史记录到Vercel KV
+ * 保存历史记录到Redis
  */
 export async function saveHistory(kv: any, newProducts: ScoutedProduct[]): Promise<void> {
   try {
@@ -76,7 +82,8 @@ export async function saveHistory(kv: any, newProducts: ScoutedProduct[]): Promi
       // 限制历史记录数量，防止无限增长
       const limitedHistory = updatedHistory.slice(-500);
       
-      await kv.set('scout_history', limitedHistory);
+      // Redis需要存储JSON字符串
+      await kv.set('scout_history', JSON.stringify(limitedHistory));
       console.log(`已更新历史记录。当前数据库包含 ${limitedHistory.length} 个产品。`);
     }
   } catch (e: any) {

@@ -6,19 +6,29 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { scoutProducts, sendEmail, saveHistory, ScoutReport } from '../lib/scout.js';
 
-// 动态导入Vercel KV（仅在需要时）
+// 动态导入Redis客户端（仅在需要时）
 async function getKV() {
   try {
-    // 检查环境变量是否存在
-    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-      console.warn('Vercel KV环境变量未配置，将跳过历史记录存储');
+    // 检查环境变量是否存在（支持多种Redis环境变量格式）
+    const redisUrl = process.env.KV_REST_API_URL || process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.KV_REST_API_TOKEN || process.env.REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+    
+    if (!redisUrl || !redisToken) {
+      console.warn('Redis环境变量未配置，将跳过历史记录存储');
       return null;
     }
     
-    const { kv } = await import('@vercel/kv');
-    return kv;
+    // 使用标准的redis客户端
+    const { createClient } = await import('redis');
+    const client = createClient({
+      url: redisUrl,
+      token: redisToken,
+    });
+    
+    await client.connect();
+    return client;
   } catch (e: any) {
-    console.warn('Vercel KV未配置或导入失败，将跳过历史记录存储:', e.message);
+    console.warn('Redis未配置或连接失败，将跳过历史记录存储:', e.message);
     return null;
   }
 }
