@@ -128,6 +128,89 @@ function extractEnglishKeywords(productName: string): string {
 }
 
 /**
+ * 从亚马逊搜索结果页面抓取第一张产品图片
+ */
+async function fetchImageFromAmazonSearch(searchUrl: string): Promise<string | undefined> {
+  try {
+    if (!searchUrl || !searchUrl.includes('amazon.com')) {
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+    try {
+      const response = await fetch(searchUrl, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1'
+        }
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.warn(`亚马逊搜索结果页面访问失败: ${searchUrl} (状态码: ${response.status})`);
+        return undefined;
+      }
+
+      const html = await response.text();
+
+      // 尝试多种方式提取图片URL
+      // 方式1: 查找 data-src 属性（懒加载图片）
+      const dataSrcMatch = html.match(/data-src="([^"]*m\.media-amazon\.com[^"]*\.(?:jpg|jpeg|png|webp))"/i);
+      if (dataSrcMatch && dataSrcMatch[1]) {
+        const imageUrl = dataSrcMatch[1].replace(/&amp;/g, '&');
+        if (await testImageUrl(imageUrl)) {
+          console.log(`[Amazon] 从搜索结果页面抓取到图片: ${imageUrl}`);
+          return imageUrl;
+        }
+      }
+
+      // 方式2: 查找 src 属性
+      const srcMatch = html.match(/src="([^"]*m\.media-amazon\.com[^"]*\.(?:jpg|jpeg|png|webp))"/i);
+      if (srcMatch && srcMatch[1]) {
+        const imageUrl = srcMatch[1].replace(/&amp;/g, '&');
+        if (await testImageUrl(imageUrl)) {
+          console.log(`[Amazon] 从搜索结果页面抓取到图片: ${imageUrl}`);
+          return imageUrl;
+        }
+      }
+
+      // 方式3: 查找 data-a-image 属性
+      const dataAImageMatch = html.match(/data-a-image="([^"]*m\.media-amazon\.com[^"]*\.(?:jpg|jpeg|png|webp))"/i);
+      if (dataAImageMatch && dataAImageMatch[1]) {
+        const imageUrl = dataAImageMatch[1].replace(/&amp;/g, '&');
+        if (await testImageUrl(imageUrl)) {
+          console.log(`[Amazon] 从搜索结果页面抓取到图片: ${imageUrl}`);
+          return imageUrl;
+        }
+      }
+
+      console.warn(`未能从亚马逊搜索结果页面提取图片: ${searchUrl}`);
+      return undefined;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        console.warn(`亚马逊搜索结果页面请求超时: ${searchUrl}`);
+      } else {
+        console.warn(`抓取亚马逊搜索结果页面失败: ${searchUrl}`, error.message);
+      }
+      return undefined;
+    }
+  } catch (error) {
+    console.warn(`从亚马逊搜索结果抓取图片失败: ${searchUrl}`, error);
+    return undefined;
+  }
+}
+
+/**
  * 使用Unsplash API搜索产品图片
  */
 async function fetchImageFromUnsplash(productName: string): Promise<string | undefined> {
@@ -158,7 +241,15 @@ async function fetchImageFromUnsplash(productName: string): Promise<string | und
 /**
  * 获取后备图片URL（组合所有后备方案）
  */
-async function getFallbackImageUrl(productName: string): Promise<string | undefined> {
+async function getFallbackImageUrl(productName: string, searchUrl?: string): Promise<string | undefined> {
+  // 优先尝试从亚马逊搜索结果页面抓取
+  if (searchUrl) {
+    const amazonImageUrl = await fetchImageFromAmazonSearch(searchUrl);
+    if (amazonImageUrl) {
+      return amazonImageUrl;
+    }
+  }
+
   // 尝试Unsplash
   const unsplashUrl = await fetchImageFromUnsplash(productName);
   if (unsplashUrl) {
@@ -329,9 +420,9 @@ export async function scoutProducts(
             }
           }
           
-          // 步骤3: 如果AI返回的URL无效，使用Unsplash后备方案
+          // 步骤3: 如果AI返回的URL无效，尝试从亚马逊搜索结果页面抓取，然后使用其他后备方案
           if (!finalImageUrl) {
-            const fallbackUrl = await getFallbackImageUrl(p.name);
+            const fallbackUrl = await getFallbackImageUrl(p.name, safeUrl);
             if (fallbackUrl) {
               finalImageUrl = fallbackUrl;
               console.log(`[Image] 使用后备图片URL: ${p.name}`);
