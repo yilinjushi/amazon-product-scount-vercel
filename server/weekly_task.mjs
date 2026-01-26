@@ -117,7 +117,7 @@ async function scoutProducts() {
     Tech Stack: ${JSON.stringify(COMPANY_PROFILE.techStackSummary)}
     
     **STRATEGY: GENERATE CANDIDATES & FILTER**
-    Please identify **9 distinct electronic products** (I will select the best 6).
+    Please identify **12 distinct electronic products** (I will select the best 10).
     
     **REQUIREMENT:** Identify distinct electronic products.
     Target Categories: Smart Home, Health, Pet Supplies, Tools.
@@ -174,8 +174,8 @@ async function scoutProducts() {
         url: ensureSafeUrl(p) // <--- 核心修复：强制修复链接
     }));
 
-    // 截取前 6 个
-    const finalProducts = uniqueProducts.slice(0, 6);
+    // 截取前 10 个
+    const finalProducts = uniqueProducts.slice(0, 10);
     
     console.log(`AI 生成了 ${rawProducts.length} 个，过滤后剩余 ${uniqueProducts.length} 个，最终选取 ${finalProducts.length} 个。`);
 

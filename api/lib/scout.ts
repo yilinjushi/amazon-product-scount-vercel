@@ -1,0 +1,262 @@
+/**
+ * 核心扫描逻辑 - 重构为TypeScript，适配Vercel Serverless Functions
+ * 产品数量：10个（从6个改为10个）
+ * 历史记录：使用Vercel KV存储
+ */
+
+import { GoogleGenAI } from "@google/genai";
+
+const COMPANY_PROFILE = {
+  name: 'IcyFire Tech Solutions',
+  techStackSummary: [
+    'Sensors: Temp/Humidity (SHT/NTC), MEMS, Bio-impedance, Hall Effect',
+    'Connectivity: BLE, WiFi (Tuya/ESP), SubG',
+    'Output: LCD/LED, Motor/Servo, Audio',
+    'Algorithms: PID, Pedometer'
+  ]
+};
+
+export interface ScoutedProduct {
+  name: string;
+  price?: string;
+  amazonRating?: string;
+  description: string;
+  matchScore: number;
+  reasoning: string;
+  requiredTech: string[];
+  url?: string;
+  imageUrl?: string;
+  isNewRelease?: boolean;
+}
+
+export interface ScoutReport {
+  date: string;
+  summary: string;
+  products: ScoutedProduct[];
+}
+
+// 辅助函数：确保链接是安全的
+function ensureSafeUrl(product: ScoutedProduct): string {
+  const url = product.url || '';
+  const name = product.name || '';
+  
+  // 如果 URL 为空，或者包含 /dp/ (具体产品页) 或 /gp/，则视为高风险幻觉链接
+  // 此时强制生成搜索链接
+  if (!url || url.includes('/dp/') || url.includes('/gp/') || !url.startsWith('http')) {
+    return `https://www.amazon.com/s?k=${encodeURIComponent(name)}`;
+  }
+  return url;
+}
+
+/**
+ * 从Vercel KV加载历史记录
+ */
+export async function loadHistory(kv: any): Promise<string[]> {
+  try {
+    if (kv) {
+      const history = await kv.get<string[]>('scout_history');
+      return history || [];
+    }
+  } catch (e: any) {
+    console.warn("读取历史记录失败，将创建新记录:", e.message);
+  }
+  return [];
+}
+
+/**
+ * 保存历史记录到Vercel KV
+ */
+export async function saveHistory(kv: any, newProducts: ScoutedProduct[]): Promise<void> {
+  try {
+    if (kv && newProducts.length > 0) {
+      const history = await loadHistory(kv);
+      const newNames = newProducts.map(p => p.name);
+      // 合并并去重
+      const updatedHistory = [...new Set([...history, ...newNames])];
+      // 限制历史记录数量，防止无限增长
+      const limitedHistory = updatedHistory.slice(-500);
+      
+      await kv.set('scout_history', limitedHistory);
+      console.log(`已更新历史记录。当前数据库包含 ${limitedHistory.length} 个产品。`);
+    }
+  } catch (e: any) {
+    console.error("保存历史记录失败:", e);
+  }
+}
+
+/**
+ * 扫描亚马逊产品
+ * @param geminiKey Gemini API密钥
+ * @param kv Vercel KV实例（可选）
+ * @returns 扫描报告
+ */
+export async function scoutProducts(
+  geminiKey: string,
+  kv?: any
+): Promise<ScoutReport> {
+  console.log("正在启动 Gemini 扫描...");
+  const ai = new GoogleGenAI({ apiKey: geminiKey });
+
+  // 加载历史记录
+  const history = await loadHistory(kv);
+  const exclusionContext = history.length > 0 
+    ? `**STRICT EXCLUSION LIST (DO NOT SUGGEST):** ${history.join(', ')}` 
+    : '';
+
+  console.log(`加载了 ${history.length} 个历史产品进行排除。`);
+
+  const prompt = `
+    Perform a product scan on Amazon US for ${COMPANY_PROFILE.name}.
+    Tech Stack: ${JSON.stringify(COMPANY_PROFILE.techStackSummary)}
+    
+    **STRATEGY: GENERATE CANDIDATES & FILTER**
+    Please identify **12 distinct electronic products** (I will select the best 10).
+    
+    **REQUIREMENT:** Identify distinct electronic products.
+    Target Categories: Smart Home, Health, Pet Supplies, Tools.
+    
+    ${exclusionContext}
+    
+    **OUTPUT FORMAT (JSON ONLY, Values in Simplified Chinese):**
+    {
+      "summary": "本周趋势分析摘要（中文）",
+      "products": [
+        {
+          "name": "产品名称 (English Name + 中文名)",
+          "price": "$XX.XX",
+          "amazonRating": "4.5",
+          "description": "功能简介",
+          "matchScore": 85,
+          "reasoning": "推荐理由...",
+          "requiredTech": ["技术1", "技术2"],
+          "url": "Provide an Amazon Search URL (e.g., https://www.amazon.com/s?k=Keywords). DO NOT guess specific /dp/ ASIN links.",
+          "imageUrl": "Product Image URL (Try to find a representative image URL, else leave empty)"
+        }
+      ]
+    }
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const jsonText = response.text || "{}";
+    const cleanJson = jsonText.replace(/```json/g, '').replace(/```/g, '');
+    const data = JSON.parse(cleanJson);
+    
+    let rawProducts: ScoutedProduct[] = data.products || [];
+
+    // --- CODE-LEVEL DEDUPLICATION & SANITIZATION ---
+    // 1. 过滤重复
+    // 2. 修复 URL (强制使用搜索链接以避免 404)
+    const normalizedHistory = new Set(history.map(h => h.trim().toLowerCase()));
+    
+    const uniqueProducts = rawProducts.filter(p => {
+      const normalizedName = p.name.trim().toLowerCase();
+      const isDuplicate = normalizedHistory.has(normalizedName);
+      if (isDuplicate) console.log(`[Filter] Detected duplicate: ${p.name}`);
+      return !isDuplicate;
+    }).map(p => ({
+      ...p,
+      url: ensureSafeUrl(p) // 强制修复链接
+    }));
+
+    // 截取前 10 个（从6个改为10个）
+    const finalProducts = uniqueProducts.slice(0, 10);
+    
+    console.log(`AI 生成了 ${rawProducts.length} 个，过滤后剩余 ${uniqueProducts.length} 个，最终选取 ${finalProducts.length} 个。`);
+
+    return {
+      date: new Date().toLocaleDateString('zh-CN'),
+      summary: data.summary || "分析完成。",
+      products: finalProducts
+    };
+  } catch (error: any) {
+    console.error("Gemini 扫描失败:", error);
+    throw error;
+  }
+}
+
+/**
+ * 发送邮件
+ */
+export async function sendEmail(
+  report: ScoutReport,
+  emailConfig: {
+    serviceId: string;
+    templateId: string;
+    publicKey: string;
+    privateKey: string;
+    recipientEmail: string;
+  }
+): Promise<void> {
+  console.log("正在构建邮件内容 (Plain Text)...");
+  
+  // 构建纯文本邮件
+  const emailText = `
+Hi Team,
+
+以下是本周的亚马逊（美国）新产品机会摘要 (服务器自动扫描)，已根据我们的研发能力进行筛选。
+
+执行摘要 (EXECUTIVE SUMMARY):
+${report.summary}
+
+--------------------------------------------------
+已识别的机会 (IDENTIFIED OPPORTUNITIES) - ${report.products.length} 项
+--------------------------------------------------
+
+${report.products.map((p, i) => `
+#${i + 1}: ${p.name}
+> 匹配度: ${p.matchScore}/100
+> 价格: ${p.price || 'N/A'} | 评分: ${p.amazonRating || 'N/A'}
+> 链接: ${p.url || '未找到链接'}
+
+推荐理由 (WHY IT FITS US):
+${p.reasoning}
+
+所需技术栈 (REQUIRED TECH STACK):
+[ ${p.requiredTech.join(' ] [ ')} ]
+
+`).join('\n--------------------------------------------------\n')}
+
+后续行动:
+1. 查看"匹配度"以评估技术可行性。
+2. 点击链接分析竞品功能。
+
+此致,
+Amazon Product Scout Agent (Server Bot)
+  `;
+
+  const url = 'https://api.emailjs.com/api/v1.0/email/send';
+  const data = {
+    service_id: emailConfig.serviceId,
+    template_id: emailConfig.templateId,
+    user_id: emailConfig.publicKey,
+    accessToken: emailConfig.privateKey,
+    template_params: {
+      to_email: emailConfig.recipientEmail,
+      subject: `[自动周报] 亚马逊产品侦察 - ${report.date}`,
+      message: emailText,
+    }
+  };
+
+  console.log("正在发送邮件至:", emailConfig.recipientEmail);
+  
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`邮件发送失败: ${errorText}`);
+  }
+  console.log("邮件发送成功!");
+}
