@@ -9,10 +9,16 @@ import { scoutProducts, sendEmail, saveHistory, ScoutReport } from '../lib/scout
 // 动态导入Vercel KV（仅在需要时）
 async function getKV() {
   try {
+    // 检查环境变量是否存在
+    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
+      console.warn('Vercel KV环境变量未配置，将跳过历史记录存储');
+      return null;
+    }
+    
     const { kv } = await import('@vercel/kv');
     return kv;
-  } catch (e) {
-    console.warn('Vercel KV未配置，将跳过历史记录存储');
+  } catch (e: any) {
+    console.warn('Vercel KV未配置或导入失败，将跳过历史记录存储:', e.message);
     return null;
   }
 }
