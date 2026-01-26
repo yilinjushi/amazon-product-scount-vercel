@@ -86,9 +86,10 @@ function validateImageUrl(imageUrl: string | undefined): string | undefined {
  * 测试图片URL是否可访问
  */
 async function testImageUrl(url: string): Promise<boolean> {
+  let timeoutId: NodeJS.Timeout | undefined;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+    timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
     
     const response = await fetch(url, { 
       method: 'HEAD',
@@ -98,8 +99,6 @@ async function testImageUrl(url: string): Promise<boolean> {
       }
     });
     
-    clearTimeout(timeoutId);
-    
     const contentType = response.headers.get('content-type') || '';
     return response.ok && (
       contentType.startsWith('image/') || 
@@ -108,6 +107,11 @@ async function testImageUrl(url: string): Promise<boolean> {
   } catch (error) {
     console.warn(`图片URL验证失败: ${url}`, error);
     return false;
+  } finally {
+    // 确保在所有代码路径上都清除 timeout
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 
@@ -242,6 +246,20 @@ export async function scoutProducts(
     
     ${exclusionContext}
     
+    **CRITICAL: PRODUCT IMAGE REQUIREMENT - YOU MUST USE GOOGLE SEARCH TOOL**
+    For EACH product, you MUST use the Google Search tool to find a REAL product image URL. Follow these steps:
+    1. Use Google Search tool to search for "[product name] Amazon image" or "[product name] product image"
+    2. Look for Google Image Search results or Amazon product image URLs
+    3. Find a DIRECT image URL that:
+       - Starts with http:// or https://
+       - Points directly to an image file (.jpg, .jpeg, .png, .webp, .gif)
+       - Can be opened directly in a browser without authentication
+       - Is from a reliable source (Amazon CDN: m.media-amazon.com, or other public CDN)
+    4. Copy the COMPLETE image URL (not a page URL, but the actual image file URL)
+    5. If you cannot find a valid image URL after searching, leave imageUrl EMPTY
+
+    **IMPORTANT:** Do NOT guess or invent image URLs. Only use URLs you found through Google Search. The imageUrl must be a direct link to an image file, not a webpage.
+    
     **OUTPUT FORMAT (JSON ONLY, Values in Simplified Chinese):**
     {
       "summary": "本周趋势分析摘要（中文）",
@@ -255,7 +273,7 @@ export async function scoutProducts(
           "reasoning": "推荐理由...",
           "requiredTech": ["技术1", "技术2"],
           "url": "Provide an Amazon Search URL (e.g., https://www.amazon.com/s?k=Keywords). DO NOT guess specific /dp/ ASIN links.",
-          "imageUrl": "CRITICAL IMAGE URL REQUIREMENTS: Use Google Search to find REAL, DIRECTLY ACCESSIBLE product image URLs. Requirements: 1) Must be a complete HTTP/HTTPS URL that can be opened directly in a browser without authentication, 2) Must NOT require special headers, referrers, or cookies, 3) Prefer URLs from m.media-amazon.com or public CDN services, 4) The URL must end with image file extensions (.jpg, .jpeg, .png, .webp, .gif) or be clearly an image resource, 5) Test that the URL is publicly accessible. If you cannot find a valid, directly accessible image URL, leave this field EMPTY (do not guess or invent URLs)."
+          "imageUrl": "MANDATORY: Use Google Search tool to find a REAL product image URL. Must be a direct link to an image file (http://...image.jpg or https://...image.png). Prefer Amazon CDN URLs (m.media-amazon.com). If no valid image found after searching, leave EMPTY."
         }
       ]
     }

@@ -45,6 +45,54 @@ async function getKV() {
   }
 }
 
+/**
+ * 检查是否在最近6天内已执行过（防止重复执行）
+ */
+async function checkLastExecution(kv: any): Promise<boolean> {
+  if (!kv) {
+    // 如果没有Redis，无法检查，允许执行（但记录警告）
+    console.warn('Redis未配置，无法检查上次执行时间，将允许执行');
+    return false;
+  }
+
+  try {
+    const lastExecutionKey = 'weekly_scout_last_execution';
+    const lastExecution = await kv.get(lastExecutionKey);
+    
+    if (lastExecution) {
+      const lastExecutionTime = new Date(lastExecution as string).getTime();
+      const now = Date.now();
+      const sixDaysInMs = 6 * 24 * 60 * 60 * 1000; // 6天的毫秒数
+      
+      if (now - lastExecutionTime < sixDaysInMs) {
+        const daysSinceLastRun = Math.floor((now - lastExecutionTime) / (24 * 60 * 60 * 1000));
+        console.log(`上次执行于 ${daysSinceLastRun} 天前，跳过本次执行（防止重复）`);
+        return true; // 已执行过，跳过
+      }
+    }
+    
+    return false; // 未执行过或已超过6天，允许执行
+  } catch (e: any) {
+    console.warn('检查上次执行时间失败，将允许执行:', e.message);
+    return false; // 出错时允许执行
+  }
+}
+
+/**
+ * 记录本次执行时间
+ */
+async function recordExecution(kv: any): Promise<void> {
+  if (!kv) return;
+  
+  try {
+    const lastExecutionKey = 'weekly_scout_last_execution';
+    await kv.set(lastExecutionKey, new Date().toISOString());
+    console.log('已记录本次执行时间');
+  } catch (e: any) {
+    console.warn('记录执行时间失败:', e.message);
+  }
+}
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
@@ -75,10 +123,20 @@ export default async function handler(
       throw new Error(`配置缺失，请在Vercel环境变量中设置: ${missing.join(', ')}`);
     }
 
-    console.log('开始执行每周产品扫描任务...');
-
-    // 获取KV实例
+    // 获取KV实例（用于防重复执行检查）
     const kv = await getKV();
+    
+    // 检查是否在最近6天内已执行过
+    const alreadyExecuted = await checkLastExecution(kv);
+    if (alreadyExecuted) {
+      return res.status(200).json({
+        success: true,
+        message: '任务已跳过（最近6天内已执行过）',
+        skipped: true
+      });
+    }
+
+    console.log('开始执行每周产品扫描任务...');
 
     // 执行扫描
     const report = await scoutProducts(geminiKey!, kv);
@@ -98,6 +156,9 @@ export default async function handler(
       privateKey: emailPrivateKey!,
       recipientEmail
     });
+
+    // 记录本次执行时间（防止重复执行）
+    await recordExecution(kv);
 
     console.log('任务全部完成。');
 
