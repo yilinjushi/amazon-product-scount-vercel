@@ -4,7 +4,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { scoutProducts, sendEmail, saveHistory, ScoutReport } from '../lib/scout';
+import { scoutProducts, sendEmail, saveHistory, ScoutReport } from '../lib/scout.js';
 
 // 动态导入Vercel KV（仅在需要时）
 async function getKV() {

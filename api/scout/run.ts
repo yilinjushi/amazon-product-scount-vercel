@@ -4,7 +4,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { scoutProducts, sendEmail, saveHistory } from '../lib/scout';
+import { scoutProducts, sendEmail, saveHistory } from '../lib/scout.js';
 
 // 简单的token验证（生产环境建议使用JWT）
 function verifyToken(token: string | undefined): boolean {
@@ -34,6 +34,9 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // 确保所有响应都是JSON格式
+  res.setHeader('Content-Type', 'application/json');
+
   // 只允许POST请求
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -100,10 +103,14 @@ export default async function handler(
     });
 
   } catch (error: any) {
-    console.error('扫描失败:', error.message);
+    console.error('扫描失败:', error);
+    const errorMessage = error.message || '未知错误';
+    const errorStack = process.env.NODE_ENV === 'development' ? error.stack : undefined;
+    
     return res.status(500).json({
       success: false,
-      error: error.message
+      error: errorMessage,
+      ...(errorStack && { stack: errorStack })
     });
   }
 }

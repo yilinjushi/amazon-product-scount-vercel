@@ -57,7 +57,19 @@ function App() {
         }
       });
 
-      const data = await response.json();
+      // 检查响应类型
+      const contentType = response.headers.get('content-type');
+      let data: any;
+
+      if (contentType && contentType.includes('application/json')) {
+        // 响应是JSON格式
+        data = await response.json();
+      } else {
+        // 响应不是JSON，可能是HTML错误页面
+        const text = await response.text();
+        console.error('非JSON响应:', text);
+        throw new Error(`服务器返回了非JSON响应。状态码: ${response.status}。请检查服务器配置和环境变量。`);
+      }
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -68,7 +80,7 @@ function App() {
           alert('认证已过期，请重新验证密码');
           return;
         }
-        throw new Error(data.error || '扫描失败');
+        throw new Error(data.error || `扫描失败 (状态码: ${response.status})`);
       }
 
       if (data.success && data.report) {
@@ -86,8 +98,9 @@ function App() {
       }
 
     } catch (error: any) {
-      console.error(error);
-      alert(`扫描失败: ${error.message || "请检查您的网络连接。"}`);
+      console.error('扫描错误详情:', error);
+      const errorMessage = error.message || "请检查您的网络连接。";
+      alert(`扫描失败: ${errorMessage}`);
     } finally {
       setIsAnalyzing(false);
     }
