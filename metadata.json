@@ -1,0 +1,5 @@
+{
+  "name": "Amazon Product Scout Agent",
+  "description": "An automated agent dashboard that analyzes company tech stacks and scouts Amazon US for matching new product opportunities.",
+  "requestFramePermissions": []
+}
