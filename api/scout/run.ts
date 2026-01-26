@@ -23,20 +23,32 @@ function verifyToken(token: string | undefined): boolean {
 async function getKV() {
   try {
     // 检查环境变量是否存在（支持多种Redis环境变量格式）
-    const redisUrl = process.env.KV_REST_API_URL || process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL;
-    const redisToken = process.env.KV_REST_API_TOKEN || process.env.REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+    // 支持 Vercel KV/Redis 的各种命名格式
+    const redisUrl = process.env.history_REDIS_URL || 
+                     process.env.KV_REST_API_URL || 
+                     process.env.REDIS_URL || 
+                     process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.history_REDIS_TOKEN || 
+                       process.env.KV_REST_API_TOKEN || 
+                       process.env.REDIS_TOKEN || 
+                       process.env.UPSTASH_REDIS_REST_TOKEN;
     
-    if (!redisUrl || !redisToken) {
-      console.warn('Redis环境变量未配置，将跳过历史记录存储');
+    if (!redisUrl) {
+      console.warn('Redis URL环境变量未配置，将跳过历史记录存储');
       return null;
     }
     
     // 使用标准的redis客户端
     const { createClient } = await import('redis');
-    const client = createClient({
-      url: redisUrl,
-      token: redisToken,
-    });
+    
+    // 如果URL包含认证信息（如 https://username:password@host），直接使用URL
+    // 否则需要单独的token
+    const clientConfig: any = { url: redisUrl };
+    if (redisToken) {
+      clientConfig.token = redisToken;
+    }
+    
+    const client = createClient(clientConfig);
     
     await client.connect();
     return client;

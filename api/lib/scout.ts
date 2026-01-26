@@ -186,6 +186,20 @@ export async function scoutProducts(
     };
   } catch (error: any) {
     console.error("Gemini 扫描失败:", error);
+    
+    // 处理 Gemini API 配额超限错误
+    if (error.code === 429 || error.status === 'RESOURCE_EXHAUSTED') {
+      const quotaError = new Error('Gemini API 配额已超限。请检查您的 API 配额和账单详情。如需帮助，请访问: https://ai.google.dev/gemini-api/docs/rate-limits');
+      (quotaError as any).code = 429;
+      (quotaError as any).status = 'RESOURCE_EXHAUSTED';
+      throw quotaError;
+    }
+    
+    // 处理其他 Gemini API 错误
+    if (error.message) {
+      throw new Error(`Gemini API 错误: ${error.message}`);
+    }
+    
     throw error;
   }
 }

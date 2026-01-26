@@ -99,7 +99,22 @@ function App() {
 
     } catch (error: any) {
       console.error('扫描错误详情:', error);
-      const errorMessage = error.message || "请检查您的网络连接。";
+      
+      // 处理 Gemini API 配额超限错误
+      let errorMessage = error.message || "请检查您的网络连接。";
+      
+      if (errorMessage.includes('配额') || errorMessage.includes('quota') || errorMessage.includes('RESOURCE_EXHAUSTED')) {
+        errorMessage = 'Gemini API 配额已超限。\n\n' +
+          '可能的原因：\n' +
+          '1. 已达到免费配额限制\n' +
+          '2. 需要升级 API 计划\n' +
+          '3. 账单问题\n\n' +
+          '解决方案：\n' +
+          '• 检查 Google AI Studio 的配额和账单\n' +
+          '• 访问 https://ai.google.dev/gemini-api/docs/rate-limits 查看详情\n' +
+          '• 等待配额重置或升级计划';
+      }
+      
       alert(`扫描失败: ${errorMessage}`);
     } finally {
       setIsAnalyzing(false);
