@@ -117,10 +117,15 @@ export async function scoutProducts(
     Perform a product scan on Amazon US for ${COMPANY_PROFILE.name}.
     Tech Stack: ${JSON.stringify(COMPANY_PROFILE.techStackSummary)}
     
-    **STRATEGY: GENERATE CANDIDATES & FILTER**
-    Please identify **12 distinct electronic products** (I will select the best 10).
+    **STRATEGY: USE GOOGLE SEARCH TO FIND CURRENT AMAZON PRODUCTS**
+    You MUST use the Google Search tool to search for current Amazon products. Search for:
+    - "Amazon Best Sellers Electronics"
+    - "Amazon New Releases Smart Home"
+    - "Trending IoT devices ${new Date().getFullYear()}"
     
-    **REQUIREMENT:** Identify distinct electronic products.
+    Based on your search results, identify **12 distinct electronic products** (I will select the best 10).
+    
+    **REQUIREMENT:** Identify distinct electronic products from your search results.
     Target Categories: Smart Home, Health, Pet Supplies, Tools.
     
     ${exclusionContext}
@@ -148,6 +153,7 @@ export async function scoutProducts(
       model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
+        tools: [{ googleSearch: {} }],
         responseMimeType: 'application/json',
       },
     });

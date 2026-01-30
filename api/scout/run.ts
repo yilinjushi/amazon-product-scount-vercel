@@ -93,6 +93,9 @@ export default async function handler(
     });
   }
 
+  // 声明在 try 外，以便 catch 中可以访问并关闭
+  let kvForHistory: Awaited<ReturnType<typeof getKV>> = null;
+
   try {
     // 验证环境变量
     const geminiKey = process.env.GEMINI_API_KEY;
@@ -117,7 +120,7 @@ export default async function handler(
 
     // 使用已有的KV实例（如果之前获取了）
     // 如果没有，重新获取（用于历史记录存储）
-    const kvForHistory = kv || await getKV();
+    kvForHistory = kv || await getKV();
 
     // 执行扫描
     const report = await scoutProducts(geminiKey!, kvForHistory);
@@ -157,7 +160,10 @@ export default async function handler(
   } catch (error: any) {
     console.error('扫描失败:', error);
     
-    // 确保关闭Redis连接
+    // 确保关闭所有Redis连接（避免泄漏）
+    if (kvForHistory && kvForHistory !== kv) {
+      await kvForHistory.quit().catch(() => {});
+    }
     if (kv) {
       await kv.quit().catch(() => {});
     }
