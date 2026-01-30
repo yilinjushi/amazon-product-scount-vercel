@@ -154,7 +154,8 @@ export async function scoutProducts(
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
-        responseMimeType: 'application/json',
+        // 注意：使用 googleSearch 工具时不支持 responseMimeType: 'application/json'
+        // 改为在 prompt 中要求返回 JSON 格式，然后手动解析
       },
     });
 

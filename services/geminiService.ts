@@ -182,7 +182,7 @@ export const scoutAmazonProducts = async (apiKey: string): Promise<AgentReport> 
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
-        responseMimeType: 'application/json',
+        // 注意：使用 googleSearch 工具时不支持 responseMimeType: 'application/json'
         systemInstruction: getSystemInstruction(),
       },
     });
