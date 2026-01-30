@@ -64,14 +64,14 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
             <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6 text-blue-700" />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">管理密码验证</h2>
-            <p className="text-xs sm:text-sm text-slate-500">请输入管理密码以访问系统</p>
+            <h2 className="text-xl sm:text-xl font-bold text-slate-900">管理密码验证</h2>
+            <p className="text-sm sm:text-sm text-slate-500">请输入管理密码以访问系统</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="flex items-center gap-2 text-sm font-bold text-slate-800 mb-2">
+            <label className="flex items-center gap-2 text-base sm:text-sm font-bold text-slate-800 mb-2">
               <Lock className="w-4 h-4 text-blue-600" />
               管理密码 <span className="text-red-500">*</span>
             </label>
@@ -91,7 +91,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-800 text-sm rounded-lg border border-red-200">
+            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-800 text-base sm:text-sm rounded-lg border border-red-200">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -100,7 +100,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold py-4 min-h-[52px] rounded-lg transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2 touch-target"
+            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold py-4 min-h-[52px] rounded-lg transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2 touch-target text-lg sm:text-base"
           >
             {isLoading ? (
               <>
@@ -113,7 +113,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
           </button>
         </form>
 
-        <div className="mt-6 p-3 bg-slate-50 text-slate-600 text-xs rounded-lg border border-slate-200 leading-relaxed">
+        <div className="mt-6 p-3 bg-slate-50 text-slate-600 text-sm sm:text-xs rounded-lg border border-slate-200 leading-relaxed">
           <strong>安全提示：</strong> 此密码用于保护系统访问权限。密码验证通过后，token将保存在浏览器会话中，关闭浏览器后需要重新验证。
         </div>
       </div>
