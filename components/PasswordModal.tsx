@@ -57,15 +57,15 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 px-4 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full border border-slate-200 relative animate-in zoom-in duration-300">
+    <div className="fixed inset-0 bg-slate-900/80 flex items-end sm:items-center justify-center z-50 backdrop-blur-sm">
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl p-6 sm:p-8 w-full sm:max-w-md sm:mx-4 border border-slate-200 relative animate-in slide-in-from-bottom sm:zoom-in duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-8">
         <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
-          <div className="p-2 rounded-lg bg-blue-100">
-            <ShieldAlert className="w-6 h-6 text-blue-700" />
+          <div className="p-2 rounded-lg bg-blue-100 flex-shrink-0">
+            <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6 text-blue-700" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">管理密码验证</h2>
-            <p className="text-sm text-slate-500">请输入管理密码以访问系统</p>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">管理密码验证</h2>
+            <p className="text-xs sm:text-sm text-slate-500">请输入管理密码以访问系统</p>
           </div>
         </div>
 
@@ -82,7 +82,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
                 setPassword(e.target.value);
                 setError('');
               }}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+              className="w-full px-4 py-3 min-h-[44px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-base"
               placeholder="请输入管理密码"
               required
               autoFocus
@@ -100,7 +100,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-lg transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold py-4 min-h-[52px] rounded-lg transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2 touch-target"
           >
             {isLoading ? (
               <>

@@ -23,26 +23,26 @@ const ProductCard: React.FC<{ product: ScoutedProduct }> = ({ product }) => {
   const [imageLoading, setImageLoading] = React.useState(true);
   
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col h-full">
+    <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-slate-200 hover:shadow-md active:shadow-md transition-shadow flex flex-col h-full">
       <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
             {product.isNewRelease && (
                  <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide mb-2 inline-block">
                     趋势 / 新品
                  </span>
             )}
-            <h3 className="text-lg font-bold text-slate-900 leading-tight">{product.name}</h3>
-            <div className="text-sm text-slate-500 mt-1 flex items-center gap-2">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight line-clamp-2">{product.name}</h3>
+            <div className="text-xs sm:text-sm text-slate-500 mt-1 flex items-center gap-2">
                 <span>{product.price || 'N/A'}</span>
                 <span>•</span>
                 <span className="flex items-center text-yellow-500">★ {product.amazonRating || 'N/A'}</span>
             </div>
         </div>
-        <div className="flex flex-col items-end ml-4">
-            <div className={`text-2xl font-black ${matchColor}`}>
+        <div className="flex flex-col items-end ml-3 sm:ml-4 flex-shrink-0">
+            <div className={`text-xl sm:text-2xl font-black ${matchColor}`}>
                 {product.matchScore}%
             </div>
-            <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">技术匹配度</span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-medium uppercase tracking-wider">技术匹配度</span>
         </div>
       </div>
       
@@ -100,12 +100,12 @@ const ProductCard: React.FC<{ product: ScoutedProduct }> = ({ product }) => {
                 href={product.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-sm font-semibold rounded-lg transition-colors touch-target"
             >
                 在亚马逊查看 <ExternalLink className="w-4 h-4" />
             </a>
         ) : (
-            <button disabled className="w-full py-2 bg-slate-50 text-slate-400 text-sm font-semibold rounded-lg cursor-not-allowed">
+            <button disabled className="w-full py-3 min-h-[44px] bg-slate-50 text-slate-400 text-sm font-semibold rounded-lg cursor-not-allowed">
                 链接不可用
             </button>
         )}
@@ -123,13 +123,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ report, isAnalyzing, onRun
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Adsmart Scout</h1>
-          <div className="flex items-center gap-4 mt-2">
-            <p className="text-slate-500">自动化智能代理</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Adsmart Scout</h1>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
+            <p className="text-slate-500 text-sm sm:text-base">自动化智能代理</p>
             <span className="hidden md:inline-block w-1 h-1 bg-slate-300 rounded-full"></span>
             <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
                 <Clock className="w-3.5 h-3.5" />
@@ -137,20 +137,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ report, isAnalyzing, onRun
             </div>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
            {report ? (
              <>
                 <button 
                   onClick={onRunAnalysis}
                   disabled={isAnalyzing}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+                  className="flex items-center justify-center gap-2 px-5 py-3 min-h-[44px] bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors shadow-sm touch-target"
                 >
                     <ArrowUpRight className="w-4 h-4" />
                     重新扫描
                 </button>
                 <button 
                   onClick={onComposeEmail}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
+                  className="flex items-center justify-center gap-2 px-5 py-3 min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm shadow-blue-200 touch-target"
                 >
                   <Mail className="w-4 h-4" />
                   预览周报
@@ -164,71 +164,71 @@ export const Dashboard: React.FC<DashboardProps> = ({ report, isAnalyzing, onRun
       </div>
 
       {/* Tech Profile Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-blue-100 rounded-lg text-blue-600">
-                <Activity className="w-6 h-6" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+         <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-blue-100 rounded-lg text-blue-600 flex-shrink-0">
+                <Activity className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-                <div className="text-sm text-slate-500 font-medium">核心传感器</div>
-                <div className="font-bold text-slate-900">{COMPANY_PROFILE.techStack[0].items.length} 种模块</div>
-            </div>
-         </div>
-         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-purple-100 rounded-lg text-purple-600">
-                <Wifi className="w-6 h-6" />
-            </div>
-            <div>
-                <div className="text-sm text-slate-500 font-medium">连接技术</div>
-                <div className="font-bold text-slate-900">{COMPANY_PROFILE.techStack[1].items.length} 种生态</div>
+            <div className="min-w-0">
+                <div className="text-xs sm:text-sm text-slate-500 font-medium truncate">核心传感器</div>
+                <div className="font-bold text-slate-900 text-sm sm:text-base">{COMPANY_PROFILE.techStack[0].items.length} 种模块</div>
             </div>
          </div>
-         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-green-100 rounded-lg text-green-600">
-                <Cpu className="w-6 h-6" />
+         <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-purple-100 rounded-lg text-purple-600 flex-shrink-0">
+                <Wifi className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-                <div className="text-sm text-slate-500 font-medium">输出模组</div>
-                <div className="font-bold text-slate-900">{COMPANY_PROFILE.techStack[2].items.length} 种类型</div>
+            <div className="min-w-0">
+                <div className="text-xs sm:text-sm text-slate-500 font-medium truncate">连接技术</div>
+                <div className="font-bold text-slate-900 text-sm sm:text-base">{COMPANY_PROFILE.techStack[1].items.length} 种生态</div>
             </div>
          </div>
-         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-orange-100 rounded-lg text-orange-600">
-                <Battery className="w-6 h-6" />
+         <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-green-100 rounded-lg text-green-600 flex-shrink-0">
+                <Cpu className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-                <div className="text-sm text-slate-500 font-medium">现有产品线</div>
-                <div className="font-bold text-slate-900">{COMPANY_PROFILE.existingProducts.length} 个 SKU</div>
+            <div className="min-w-0">
+                <div className="text-xs sm:text-sm text-slate-500 font-medium truncate">输出模组</div>
+                <div className="font-bold text-slate-900 text-sm sm:text-base">{COMPANY_PROFILE.techStack[2].items.length} 种类型</div>
+            </div>
+         </div>
+         <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-orange-100 rounded-lg text-orange-600 flex-shrink-0">
+                <Battery className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <div className="min-w-0">
+                <div className="text-xs sm:text-sm text-slate-500 font-medium truncate">现有产品线</div>
+                <div className="font-bold text-slate-900 text-sm sm:text-base">{COMPANY_PROFILE.existingProducts.length} 个 SKU</div>
             </div>
          </div>
       </div>
 
       {/* Main Content Area */}
       {!report && (
-        <div className="text-center py-24 bg-white rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center transition-all">
+        <div className="text-center py-12 sm:py-24 px-4 bg-white rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center transition-all">
             
             {isAnalyzing ? (
-                <div className="py-12 flex flex-col items-center animate-in fade-in zoom-in duration-300">
-                    <div className="relative w-20 h-20 mb-6">
+                <div className="py-8 sm:py-12 flex flex-col items-center animate-in fade-in zoom-in duration-300">
+                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 mb-4 sm:mb-6">
                         <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
                         <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-                        <Search className="absolute inset-0 m-auto w-8 h-8 text-blue-600 animate-pulse" />
+                        <Search className="absolute inset-0 m-auto w-6 h-6 sm:w-8 sm:h-8 text-blue-600 animate-pulse" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-800">正在扫描亚马逊市场...</h3>
-                    <p className="text-slate-500 mt-2">智能代理正在分析趋势与匹配技术栈</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-800">正在扫描亚马逊市场...</h3>
+                    <p className="text-slate-500 mt-2 text-sm sm:text-base px-4">智能代理正在分析趋势与匹配技术栈</p>
                 </div>
             ) : (
-                <div className="py-8 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="py-6 sm:py-8 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
                     <button 
                         onClick={onRunAnalysis}
-                        className="group relative flex items-center gap-4 px-10 py-5 bg-blue-600 text-white text-xl font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 hover:shadow-2xl hover:-translate-y-1 overflow-hidden mb-8"
+                        className="group relative flex items-center justify-center gap-3 sm:gap-4 px-8 sm:px-10 py-4 sm:py-5 min-h-[56px] w-full sm:w-auto max-w-xs bg-blue-600 text-white text-lg sm:text-xl font-bold rounded-2xl hover:bg-blue-700 active:bg-blue-800 transition-all shadow-xl shadow-blue-200 hover:shadow-2xl sm:hover:-translate-y-1 overflow-hidden mb-6 sm:mb-8 touch-target"
                     >
                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                        <Search className="w-7 h-7 group-hover:scale-110 transition-transform duration-300" />
+                        <Search className="w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform duration-300" />
                         <span className="relative">新品扫描</span>
                     </button>
-                    <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
-                        运行 <strong>新产品发现框架</strong>，代理将自动识别亚马逊上与我们技术栈高度匹配的 6 个机会。
+                    <p className="text-slate-500 max-w-md mx-auto leading-relaxed text-sm sm:text-base px-2">
+                        运行 <strong>新产品发现框架</strong>，代理将自动识别亚马逊上与我们技术栈高度匹配的产品机会。
                     </p>
                 </div>
             )}
@@ -236,22 +236,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ report, isAnalyzing, onRun
       )}
 
       {report && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <div className="bg-slate-900 text-white p-6 rounded-xl shadow-lg">
-                <div className="flex items-start gap-4">
-                    <div className="p-3 bg-slate-800 rounded-lg">
-                        <Calendar className="w-6 h-6 text-blue-400" />
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+            <div className="bg-slate-900 text-white p-4 sm:p-6 rounded-xl shadow-lg">
+                <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 bg-slate-800 rounded-lg flex-shrink-0">
+                        <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                     </div>
-                    <div>
-                        <h3 className="text-lg font-bold mb-1">每周市场分析</h3>
-                        <p className="text-slate-300 leading-relaxed text-sm">
+                    <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg font-bold mb-1">每周市场分析</h3>
+                        <p className="text-slate-300 leading-relaxed text-xs sm:text-sm">
                             {report.summary}
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {report.products.map((product, idx) => (
                     <ProductCard key={idx} product={product} />
                 ))}
