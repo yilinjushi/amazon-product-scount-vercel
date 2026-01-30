@@ -1,9 +1,9 @@
 /**
  * 速率限制模块
  * 用于限制手动扫描的执行次数
- * - 每小时最多10次
- * - 每天最多20次
  */
+
+import { RATE_LIMIT_CONFIG } from './config.js';
 
 interface RateLimitResult {
   allowed: boolean;
@@ -30,8 +30,7 @@ export async function checkRateLimit(kv?: any): Promise<RateLimitResult> {
   const currentHour = Math.floor(now / (60 * 60 * 1000)); // 当前小时的时间戳（小时为单位）
   const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD格式
 
-  const HOURLY_LIMIT = 10;
-  const DAILY_LIMIT = 20;
+  const { HOURLY_LIMIT, DAILY_LIMIT } = RATE_LIMIT_CONFIG;
 
   try {
     if (kv) {
@@ -199,8 +198,7 @@ export async function getRateLimitStatus(kv?: any): Promise<{
   const currentHour = Math.floor(now / (60 * 60 * 1000));
   const currentDate = new Date().toISOString().split('T')[0];
 
-  const HOURLY_LIMIT = 10;
-  const DAILY_LIMIT = 20;
+  const { HOURLY_LIMIT, DAILY_LIMIT } = RATE_LIMIT_CONFIG;
 
   try {
     if (kv) {

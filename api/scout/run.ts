@@ -7,45 +7,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { scoutProducts, sendEmail, saveHistory } from '../lib/scout.js';
 import { verifyToken } from '../lib/auth.js';
 import { checkRateLimit } from '../lib/rateLimit.js';
-
-// 动态导入Redis客户端
-async function getKV() {
-  try {
-    // 检查环境变量是否存在（支持多种Redis环境变量格式）
-    // 支持 Vercel KV/Redis 的各种命名格式
-    const redisUrl = process.env.history_REDIS_URL || 
-                     process.env.KV_REST_API_URL || 
-                     process.env.REDIS_URL || 
-                     process.env.UPSTASH_REDIS_REST_URL;
-    const redisToken = process.env.history_REDIS_TOKEN || 
-                       process.env.KV_REST_API_TOKEN || 
-                       process.env.REDIS_TOKEN || 
-                       process.env.UPSTASH_REDIS_REST_TOKEN;
-    
-    if (!redisUrl) {
-      console.warn('Redis URL环境变量未配置，将跳过历史记录存储');
-      return null;
-    }
-    
-    // 使用标准的redis客户端
-    const { createClient } = await import('redis');
-    
-    // 如果URL包含认证信息（如 https://username:password@host），直接使用URL
-    // 否则需要单独的token
-    const clientConfig: any = { url: redisUrl };
-    if (redisToken) {
-      clientConfig.token = redisToken;
-    }
-    
-    const client = createClient(clientConfig);
-    
-    await client.connect();
-    return client;
-  } catch (e: any) {
-    console.warn('Redis未配置或连接失败，将跳过历史记录存储:', e.message);
-    return null;
-  }
-}
+import { getKV, closeKV, RedisClient } from '../lib/redis.js';
 
 export default async function handler(
   req: VercelRequest,
@@ -70,20 +32,14 @@ export default async function handler(
   const isValidToken = await verifyToken(token, kv);
   
   if (!isValidToken) {
-    // 如果使用了Redis，关闭连接
-    if (kv) {
-      await kv.quit().catch(() => {}); // 忽略关闭错误
-    }
+    await closeKV(kv);
     return res.status(401).json({ error: '未授权，请先验证密码' });
   }
 
   // 检查速率限制（每小时最多10次，每天最多20次）
   const rateLimitResult = await checkRateLimit(kv);
   if (!rateLimitResult.allowed) {
-    // 如果使用了Redis，关闭连接
-    if (kv) {
-      await kv.quit().catch(() => {}); // 忽略关闭错误
-    }
+    await closeKV(kv);
     return res.status(429).json({ 
       error: rateLimitResult.message || '超过次数，请隔天再试',
       hourlyCount: rateLimitResult.hourlyCount,
@@ -94,7 +50,7 @@ export default async function handler(
   }
 
   // 声明在 try 外，以便 catch 中可以访问并关闭
-  let kvForHistory: Awaited<ReturnType<typeof getKV>> = null;
+  let kvForHistory: RedisClient = null;
 
   try {
     // 验证环境变量
@@ -143,13 +99,9 @@ export default async function handler(
 
     console.log('手动扫描任务完成。');
 
-    // 关闭Redis连接（如果使用了）
-    if (kvForHistory && kvForHistory !== kv) {
-      await kvForHistory.quit().catch(() => {});
-    }
-    if (kv) {
-      await kv.quit().catch(() => {});
-    }
+    // 关闭Redis连接
+    if (kvForHistory !== kv) await closeKV(kvForHistory);
+    await closeKV(kv);
 
     return res.status(200).json({
       success: true,
@@ -160,13 +112,9 @@ export default async function handler(
   } catch (error: any) {
     console.error('扫描失败:', error);
     
-    // 确保关闭所有Redis连接（避免泄漏）
-    if (kvForHistory && kvForHistory !== kv) {
-      await kvForHistory.quit().catch(() => {});
-    }
-    if (kv) {
-      await kv.quit().catch(() => {});
-    }
+    // 确保关闭所有Redis连接
+    if (kvForHistory !== kv) await closeKV(kvForHistory);
+    await closeKV(kv);
     
     const errorMessage = error.message || '未知错误';
     const errorStack = process.env.NODE_ENV === 'development' ? error.stack : undefined;

@@ -5,45 +5,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { scoutProducts, sendEmail, saveHistory, ScoutReport } from '../lib/scout.js';
-
-// 动态导入Redis客户端（仅在需要时）
-async function getKV() {
-  try {
-    // 检查环境变量是否存在（支持多种Redis环境变量格式）
-    // 支持 Vercel KV/Redis 的各种命名格式
-    const redisUrl = process.env.history_REDIS_URL || 
-                     process.env.KV_REST_API_URL || 
-                     process.env.REDIS_URL || 
-                     process.env.UPSTASH_REDIS_REST_URL;
-    const redisToken = process.env.history_REDIS_TOKEN || 
-                       process.env.KV_REST_API_TOKEN || 
-                       process.env.REDIS_TOKEN || 
-                       process.env.UPSTASH_REDIS_REST_TOKEN;
-    
-    if (!redisUrl) {
-      console.warn('Redis URL环境变量未配置，将跳过历史记录存储');
-      return null;
-    }
-    
-    // 使用标准的redis客户端
-    const { createClient } = await import('redis');
-    
-    // 如果URL包含认证信息（如 https://username:password@host），直接使用URL
-    // 否则需要单独的token
-    const clientConfig: any = { url: redisUrl };
-    if (redisToken) {
-      clientConfig.token = redisToken;
-    }
-    
-    const client = createClient(clientConfig);
-    
-    await client.connect();
-    return client;
-  } catch (e: any) {
-    console.warn('Redis未配置或连接失败，将跳过历史记录存储:', e.message);
-    return null;
-  }
-}
+import { getKV, closeKV } from '../lib/redis.js';
 
 /**
  * 检查是否在最近6天内已执行过（防止重复执行）
@@ -103,6 +65,9 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  // 声明在 try 外，以便 catch 中可以关闭
+  let kv: Awaited<ReturnType<typeof getKV>> = null;
+
   try {
     // 验证环境变量
     const geminiKey = process.env.GEMINI_API_KEY;
@@ -124,11 +89,12 @@ export default async function handler(
     }
 
     // 获取KV实例（用于防重复执行检查）
-    const kv = await getKV();
+    kv = await getKV();
     
     // 检查是否在最近6天内已执行过
     const alreadyExecuted = await checkLastExecution(kv);
     if (alreadyExecuted) {
+      await closeKV(kv);
       return res.status(200).json({
         success: true,
         message: '任务已跳过（最近6天内已执行过）',
@@ -159,6 +125,7 @@ export default async function handler(
 
     // 记录本次执行时间（防止重复执行）
     await recordExecution(kv);
+    await closeKV(kv);
 
     console.log('任务全部完成。');
 
@@ -171,6 +138,7 @@ export default async function handler(
 
   } catch (error: any) {
     console.error('任务失败:', error.message);
+    await closeKV(kv);
     return res.status(500).json({
       success: false,
       error: error.message

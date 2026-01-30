@@ -5,37 +5,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { generateToken, storeToken } from '../lib/auth.js';
-
-// 动态导入Redis客户端（用于存储token）
-async function getKV() {
-  try {
-    const redisUrl = process.env.history_REDIS_URL || 
-                     process.env.KV_REST_API_URL || 
-                     process.env.REDIS_URL || 
-                     process.env.UPSTASH_REDIS_REST_URL;
-    const redisToken = process.env.history_REDIS_TOKEN || 
-                       process.env.KV_REST_API_TOKEN || 
-                       process.env.REDIS_TOKEN || 
-                       process.env.UPSTASH_REDIS_REST_TOKEN;
-    
-    if (!redisUrl) {
-      return null; // 无Redis，将使用内存存储
-    }
-    
-    const { createClient } = await import('redis');
-    const clientConfig: any = { url: redisUrl };
-    if (redisToken) {
-      clientConfig.token = redisToken;
-    }
-    
-    const client = createClient(clientConfig);
-    await client.connect();
-    return client;
-  } catch (e: any) {
-    console.warn('Redis未配置或连接失败，将使用内存存储token:', e.message);
-    return null;
-  }
-}
+import { getKV, closeKV } from '../lib/redis.js';
 
 export default async function handler(
   req: VercelRequest,
@@ -72,11 +42,7 @@ export default async function handler(
     // 存储token（优先使用Redis，否则使用内存）
     const kv = await getKV();
     await storeToken(token, expiresAt, kv);
-
-    // 如果使用了Redis，关闭连接
-    if (kv) {
-      await kv.quit().catch(() => {}); // 忽略关闭错误
-    }
+    await closeKV(kv);
 
     return res.status(200).json({
       success: true,

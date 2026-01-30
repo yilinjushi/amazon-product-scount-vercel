@@ -1,20 +1,10 @@
 /**
  * 核心扫描逻辑 - 重构为TypeScript，适配Vercel Serverless Functions
- * 产品数量：9个
  * 历史记录：使用Vercel KV存储
  */
 
 import { GoogleGenAI } from "@google/genai";
-
-const COMPANY_PROFILE = {
-  name: 'IcyFire Tech Solutions',
-  techStackSummary: [
-    'Sensors: Temp/Humidity (SHT/NTC), MEMS, Bio-impedance, Hall Effect',
-    'Connectivity: BLE, WiFi (Tuya/ESP), SubG',
-    'Output: LCD/LED, Motor/Servo, Audio',
-    'Algorithms: PID, Pedometer'
-  ]
-};
+import { SCOUT_CONFIG, AI_CONFIG, COMPANY_PROFILE, DEFAULT_RECIPIENT_EMAIL } from './config.js';
 
 export interface ScoutedProduct {
   name: string;
@@ -81,7 +71,7 @@ export async function saveHistory(kv: any, newProducts: ScoutedProduct[]): Promi
       // 合并并去重
       const updatedHistory = [...new Set([...history, ...newNames])];
       // 限制历史记录数量，防止无限增长
-      const limitedHistory = updatedHistory.slice(-500);
+      const limitedHistory = updatedHistory.slice(-SCOUT_CONFIG.HISTORY_LIMIT);
       
       // Redis需要存储JSON字符串
       await kv.set('scout_history', JSON.stringify(limitedHistory));
@@ -123,7 +113,7 @@ export async function scoutProducts(
     - "Amazon New Releases Smart Home"
     - "Trending IoT devices ${new Date().getFullYear()}"
     
-    Based on your search results, identify **11 distinct electronic products** (I will select the best 9).
+    Based on your search results, identify **${SCOUT_CONFIG.PRODUCT_CANDIDATES} distinct electronic products** (I will select the best ${SCOUT_CONFIG.PRODUCT_COUNT}).
     
     **REQUIREMENT:** Identify distinct electronic products from your search results.
     Target Categories: Smart Home, Health, Pet Supplies, Tools.
@@ -150,7 +140,7 @@ export async function scoutProducts(
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: AI_CONFIG.MODEL,
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -160,8 +150,31 @@ export async function scoutProducts(
     });
 
     const jsonText = response.text || "{}";
-    const cleanJson = jsonText.replace(/```json/g, '').replace(/```/g, '');
-    const data = JSON.parse(cleanJson);
+    
+    // 健壮的 JSON 解析
+    let data: { summary?: string; products?: ScoutedProduct[] };
+    try {
+      const cleanJson = jsonText
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .replace(/^\s*\n/gm, '')
+        .trim();
+      data = JSON.parse(cleanJson);
+    } catch (parseError) {
+      console.error('JSON 解析失败，原始响应:', jsonText.substring(0, 500));
+      // 尝试提取 JSON 部分
+      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          data = JSON.parse(jsonMatch[0]);
+        } catch {
+          console.error('二次 JSON 解析也失败');
+          data = { summary: '解析失败', products: [] };
+        }
+      } else {
+        data = { summary: '解析失败', products: [] };
+      }
+    }
     
     let rawProducts: ScoutedProduct[] = data.products || [];
 
@@ -190,8 +203,8 @@ export async function scoutProducts(
         })
     );
 
-    // 截取前 9 个
-    const finalProducts = uniqueProducts.slice(0, 9);
+    // 截取前 N 个
+    const finalProducts = uniqueProducts.slice(0, SCOUT_CONFIG.PRODUCT_COUNT);
     
     console.log(`AI 生成了 ${rawProducts.length} 个，过滤后剩余 ${uniqueProducts.length} 个，最终选取 ${finalProducts.length} 个。`);
 
