@@ -29,7 +29,7 @@ ${report.summary}
 
 ${report.products.map((p, i) => `
 #${i + 1}: ${p.name}
-> 匹配度: ${p.matchScore}/100
+> 技术匹配度: ${p.matchScore}/100
 > 价格: ${p.price || 'N/A'} | 评分: ${p.amazonRating || 'N/A'}
 > 链接: ${p.url || '未找到链接'}
 
@@ -42,11 +42,11 @@ ${p.reasoning}
 `).join('\n--------------------------------------------------\n')}
 
 后续行动:
-1. 查看“匹配度”以评估技术可行性。
+1. 查看“技术匹配度”以评估技术可行性。
 2. 点击链接分析竞品功能。
 
 此致,
-Amazon Product Scout Agent (亚马逊产品侦察兵)
+Adsmart Scout
   `;
 };
 
