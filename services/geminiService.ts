@@ -131,7 +131,7 @@ export const scoutAmazonProducts = async (apiKey: string): Promise<AgentReport> 
     Perform a product scan on Amazon US.
     
     **STRATEGY: GENERATE CANDIDATES & FILTER**
-    Please identify **12 distinct electronic products** (I will select the best 10).
+    Please identify **11 distinct electronic products** (I will select the best 9).
     
     **CRITICAL EXCLUSION LIST (DO NOT SUGGEST THESE):**
     [ ${exclusionList} ]
@@ -216,7 +216,7 @@ export const scoutAmazonProducts = async (apiKey: string): Promise<AgentReport> 
 
     // --- 3. SLICE TO 10 ---
     // We asked for 12, filtered duplicates, now take top 10
-    const finalProducts = uniqueProducts.slice(0, 10);
+    const finalProducts = uniqueProducts.slice(0, 9);
 
     // --- 4. SAVE HISTORY ---
     if (finalProducts.length > 0) {

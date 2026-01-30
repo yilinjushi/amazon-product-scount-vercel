@@ -1,6 +1,6 @@
 /**
  * 核心扫描逻辑 - 重构为TypeScript，适配Vercel Serverless Functions
- * 产品数量：10个（从6个改为10个）
+ * 产品数量：9个
  * 历史记录：使用Vercel KV存储
  */
 
@@ -123,7 +123,7 @@ export async function scoutProducts(
     - "Amazon New Releases Smart Home"
     - "Trending IoT devices ${new Date().getFullYear()}"
     
-    Based on your search results, identify **12 distinct electronic products** (I will select the best 10).
+    Based on your search results, identify **11 distinct electronic products** (I will select the best 9).
     
     **REQUIREMENT:** Identify distinct electronic products from your search results.
     Target Categories: Smart Home, Health, Pet Supplies, Tools.
@@ -190,8 +190,8 @@ export async function scoutProducts(
         })
     );
 
-    // 截取前 10 个（从6个改为10个）
-    const finalProducts = uniqueProducts.slice(0, 10);
+    // 截取前 9 个
+    const finalProducts = uniqueProducts.slice(0, 9);
     
     console.log(`AI 生成了 ${rawProducts.length} 个，过滤后剩余 ${uniqueProducts.length} 个，最终选取 ${finalProducts.length} 个。`);
 
