@@ -34,7 +34,7 @@ export interface ScoutedProduct {
   requiredTech: string[];
   missingTech?: string[];
   url?: string;
-  isNewRelease: boolean;
+  isNewRelease?: boolean;
 }
 
 export interface AgentReport {

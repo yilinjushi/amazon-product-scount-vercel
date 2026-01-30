@@ -4,8 +4,9 @@
  */
 
 import { GoogleGenAI } from "@google/genai";
-import { SCOUT_CONFIG, AI_CONFIG, COMPANY_PROFILE, DEFAULT_RECIPIENT_EMAIL } from './config.js';
+import { SCOUT_CONFIG, AI_CONFIG, COMPANY_PROFILE } from './config.js';
 
+// 使用后端专用的类型定义（与前端types.ts结构相似但独立）
 export interface ScoutedProduct {
   name: string;
   price?: string;
@@ -15,7 +16,6 @@ export interface ScoutedProduct {
   reasoning: string;
   requiredTech: string[];
   url?: string;
-  imageUrl?: string;
   isNewRelease?: boolean;
 }
 

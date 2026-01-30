@@ -1,7 +1,7 @@
 import React from 'react';
-import { CompanyProfile, AgentReport, ScoutedProduct } from '../types';
+import { AgentReport, ScoutedProduct } from '../types';
 import { COMPANY_PROFILE } from '../constants';
-import { Cpu, Wifi, Activity, Battery, CheckCircle, AlertCircle, ArrowUpRight, Mail, ExternalLink, Calendar, Clock, Search } from 'lucide-react';
+import { Cpu, Wifi, Activity, Battery, ArrowUpRight, Mail, ExternalLink, Calendar, Clock, Search } from 'lucide-react';
 
 interface DashboardProps {
   report: AgentReport | null;
@@ -19,8 +19,6 @@ const TechBadge: React.FC<{ label: string; type?: 'required' | 'missing' }> = ({
 const ProductCard: React.FC<{ product: ScoutedProduct }> = ({ product }) => {
   const isHighMatch = product.matchScore >= 80;
   const matchColor = isHighMatch ? 'text-green-600' : product.matchScore >= 60 ? 'text-yellow-600' : 'text-slate-400';
-  const [imageError, setImageError] = React.useState(false);
-  const [imageLoading, setImageLoading] = React.useState(true);
   
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-slate-200 hover:shadow-md active:shadow-md transition-shadow flex flex-col h-full">
@@ -45,36 +43,6 @@ const ProductCard: React.FC<{ product: ScoutedProduct }> = ({ product }) => {
             <span className="text-lg sm:text-xs text-slate-400 font-medium uppercase tracking-wider">技术匹配度</span>
         </div>
       </div>
-      
-      {/* 产品图片 - 添加在标题和价格信息下方 */}
-      {product.imageUrl && !imageError ? (
-        <div className="mb-4 w-full aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200 relative">
-          {imageLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
-              <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin"></div>
-            </div>
-          )}
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${
-              imageLoading ? 'opacity-0' : 'opacity-100'
-            }`}
-            onLoad={() => setImageLoading(false)}
-            onError={() => {
-              setImageError(true);
-              setImageLoading(false);
-            }}
-          />
-        </div>
-      ) : product.imageUrl && imageError ? (
-        <div className="mb-4 w-full aspect-square bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
-          <div className="text-center text-slate-400">
-            <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-            <p className="text-xs">图片加载失败</p>
-          </div>
-        </div>
-      ) : null}
       
       <p className="text-slate-600 text-xl sm:text-sm mb-4 line-clamp-3 flex-grow">
         {product.description}

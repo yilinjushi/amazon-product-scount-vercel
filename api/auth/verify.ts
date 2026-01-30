@@ -6,6 +6,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { generateToken, storeToken } from '../lib/auth.js';
 import { getKV, closeKV } from '../lib/redis.js';
+import { AUTH_CONFIG } from '../lib/config.js';
 
 export default async function handler(
   req: VercelRequest,
@@ -37,7 +38,7 @@ export default async function handler(
 
     // 生成安全的token（使用加密安全的随机数）
     const token = generateToken();
-    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30天后过期
+    const expiresAt = Date.now() + AUTH_CONFIG.TOKEN_EXPIRY_MS;
 
     // 存储token（优先使用Redis，否则使用内存）
     const kv = await getKV();

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { PasswordModal } from './components/PasswordModal';
 import { EmailPreview } from './components/EmailPreview';
-import { formatEmailBody } from './services/emailService';
 import { AgentReport } from './types';
 
 function App() {
@@ -142,7 +141,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-slate-50 text-slate-900 font-sans relative">
+    <div className="min-h-[100dvh] bg-slate-50 text-slate-900 font-sans relative">
       <Dashboard 
         report={report} 
         isAnalyzing={isAnalyzing} 

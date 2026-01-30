@@ -27,6 +27,12 @@ export const AI_CONFIG = {
   MODEL: 'gemini-2.5-flash',
 } as const;
 
+// 认证配置
+export const AUTH_CONFIG = {
+  /** Token 有效期（毫秒）- 30天 */
+  TOKEN_EXPIRY_MS: 30 * 24 * 60 * 60 * 1000,
+} as const;
+
 // 公司信息（用于产品匹配）
 export const COMPANY_PROFILE = {
   name: 'IcyFire Tech Solutions',
