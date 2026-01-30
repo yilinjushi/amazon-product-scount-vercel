@@ -13,10 +13,10 @@ function App() {
   const [report, setReport] = useState<AgentReport | null>(null);
   const [showEmail, setShowEmail] = useState(false);
 
-  // 检查认证状态
+  // 检查认证状态（从localStorage读取持久化的token）
   useEffect(() => {
-    const token = sessionStorage.getItem('admin_token');
-    const expiresAt = sessionStorage.getItem('admin_token_expires');
+    const token = localStorage.getItem('admin_token');
+    const expiresAt = localStorage.getItem('admin_token_expires');
     
     if (token && expiresAt) {
       const expires = parseInt(expiresAt, 10);
@@ -24,8 +24,8 @@ function App() {
         setIsAuthenticated(true);
       } else {
         // Token已过期，清除
-        sessionStorage.removeItem('admin_token');
-        sessionStorage.removeItem('admin_token_expires');
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_token_expires');
       }
     }
     
@@ -38,7 +38,7 @@ function App() {
 
   const handleRunAnalysis = async () => {
     // 获取token
-    const token = sessionStorage.getItem('admin_token');
+    const token = localStorage.getItem('admin_token');
     if (!token) {
       alert('请先验证密码');
       return;
@@ -74,8 +74,8 @@ function App() {
       if (!response.ok) {
         if (response.status === 401) {
           // Token失效，清除并重新验证
-          sessionStorage.removeItem('admin_token');
-          sessionStorage.removeItem('admin_token_expires');
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_token_expires');
           setIsAuthenticated(false);
           alert('认证已过期，请重新验证密码');
           return;

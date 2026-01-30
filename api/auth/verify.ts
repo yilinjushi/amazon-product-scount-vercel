@@ -37,7 +37,7 @@ export default async function handler(
 
     // 生成安全的token（使用加密安全的随机数）
     const token = generateToken();
-    const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24小时后
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7天后过期
 
     // 存储token（优先使用Redis，否则使用内存）
     const kv = await getKV();

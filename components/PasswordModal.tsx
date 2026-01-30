@@ -38,9 +38,9 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
       }
 
       if (data.success && data.token) {
-        // 保存token和过期时间
-        sessionStorage.setItem('admin_token', data.token);
-        sessionStorage.setItem('admin_token_expires', data.expiresAt.toString());
+        // 保存token和过期时间到localStorage（持久化存储）
+        localStorage.setItem('admin_token', data.token);
+        localStorage.setItem('admin_token_expires', data.expiresAt.toString());
         onVerify(data.token, data.expiresAt);
       } else {
         throw new Error('验证失败');
@@ -114,7 +114,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onVerify, onError 
         </form>
 
         <div className="mt-6 p-3 bg-slate-50 text-slate-600 text-sm sm:text-xs rounded-lg border border-slate-200 leading-relaxed">
-          <strong>安全提示：</strong> 此密码用于保护系统访问权限。密码验证通过后，token将保存在浏览器会话中，关闭浏览器后需要重新验证。
+          <strong>安全提示：</strong> 此密码用于保护系统访问权限。验证通过后，登录状态将保持有效，无需每次重新输入密码。
         </div>
       </div>
     </div>
