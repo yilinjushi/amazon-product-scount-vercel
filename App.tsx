@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { PasswordModal } from './components/PasswordModal';
 import { EmailPreview } from './components/EmailPreview';
-import { ParticleBackground } from './components/ParticleBackground';
+import StarryBackground from './components/StarryBackground';
 import { AgentReport } from './types';
 
 function App() {
@@ -142,8 +142,8 @@ function App() {
   }
 
   return (
-    <div className="min-h-[100dvh] app-background text-white font-sans relative">
-      <ParticleBackground />
+    <div className="min-h-[100dvh] text-white font-sans relative">
+      <StarryBackground />
       <div className="relative z-10">
         <Dashboard 
           report={report} 
