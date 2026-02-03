@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { PasswordModal } from './components/PasswordModal';
 import { EmailPreview } from './components/EmailPreview';
+import { ParticleBackground } from './components/ParticleBackground';
 import { AgentReport } from './types';
 
 function App() {
@@ -141,13 +142,16 @@ function App() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50 text-slate-900 font-sans relative">
-      <Dashboard 
-        report={report} 
-        isAnalyzing={isAnalyzing} 
-        onRunAnalysis={handleRunAnalysis}
-        onComposeEmail={() => setShowEmail(true)}
-      />
+    <div className="min-h-[100dvh] app-background text-white font-sans relative">
+      <ParticleBackground />
+      <div className="relative z-10">
+        <Dashboard 
+          report={report} 
+          isAnalyzing={isAnalyzing} 
+          onRunAnalysis={handleRunAnalysis}
+          onComposeEmail={() => setShowEmail(true)}
+        />
+      </div>
 
       {showEmail && report && (
         <EmailPreview 

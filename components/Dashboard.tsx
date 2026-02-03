@@ -95,11 +95,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ report, isAnalyzing, onRun
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-4xl sm:text-3xl font-bold text-slate-900">Adsmart Scout</h1>
+          <h1 className="text-4xl sm:text-3xl font-bold text-white">Adsmart Scout</h1>
           <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
-            <p className="text-slate-500 text-xl sm:text-base">自动化智能代理</p>
-            <span className="hidden md:inline-block w-1 h-1 bg-slate-300 rounded-full"></span>
-            <div className="flex items-center gap-1.5 text-lg sm:text-xs font-medium text-slate-500 bg-slate-100 px-3 sm:px-2 py-1.5 sm:py-1 rounded-md">
+            <p className="text-slate-400 text-xl sm:text-base">自动化智能代理</p>
+            <span className="hidden md:inline-block w-1 h-1 bg-slate-600 rounded-full"></span>
+            <div className="flex items-center gap-1.5 text-lg sm:text-xs font-medium text-slate-300 bg-white/10 backdrop-blur-sm px-3 sm:px-2 py-1.5 sm:py-1 rounded-md border border-white/10">
                 <Clock className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                 <span>下次扫描: {getNextRunDate()}</span>
             </div>
@@ -111,14 +111,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ report, isAnalyzing, onRun
                 <button 
                   onClick={onRunAnalysis}
                   disabled={isAnalyzing}
-                  className="flex items-center justify-center gap-2 px-5 py-4 sm:py-3 min-h-[52px] sm:min-h-[44px] bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors shadow-sm touch-target text-xl sm:text-base"
+                  className="flex items-center justify-center gap-2 px-5 py-4 sm:py-3 min-h-[52px] sm:min-h-[44px] bg-white/10 backdrop-blur-sm border border-white/20 text-white font-medium rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors shadow-sm touch-target text-xl sm:text-base"
                 >
                     <ArrowUpRight className="w-5 h-5 sm:w-4 sm:h-4" />
                     重新扫描
                 </button>
                 <button 
                   onClick={onComposeEmail}
-                  className="flex items-center justify-center gap-2 px-5 py-4 sm:py-3 min-h-[52px] sm:min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm shadow-blue-200 touch-target text-xl sm:text-base"
+                  className="flex items-center justify-center gap-2 px-5 py-4 sm:py-3 min-h-[52px] sm:min-h-[44px] bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm shadow-blue-900/50 touch-target text-xl sm:text-base"
                 >
                   <Mail className="w-5 h-5 sm:w-4 sm:h-4" />
                   预览周报
@@ -133,70 +133,70 @@ export const Dashboard: React.FC<DashboardProps> = ({ report, isAnalyzing, onRun
 
       {/* Tech Profile Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-         <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
-            <div className="p-2 sm:p-3 bg-blue-100 rounded-lg text-blue-600 flex-shrink-0">
+         <div className="bg-white/10 backdrop-blur-sm p-3 sm:p-4 rounded-xl border border-white/10 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-blue-500/20 rounded-lg text-blue-400 flex-shrink-0">
                 <Activity className="w-6 h-6 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-                <div className="text-lg sm:text-sm text-slate-500 font-medium truncate">核心传感器</div>
-                <div className="font-bold text-slate-900 text-xl sm:text-base">{COMPANY_PROFILE.techStack[0].items.length} 种模块</div>
+                <div className="text-lg sm:text-sm text-slate-400 font-medium truncate">核心传感器</div>
+                <div className="font-bold text-white text-xl sm:text-base">{COMPANY_PROFILE.techStack[0].items.length} 种模块</div>
             </div>
          </div>
-         <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
-            <div className="p-2 sm:p-3 bg-purple-100 rounded-lg text-purple-600 flex-shrink-0">
+         <div className="bg-white/10 backdrop-blur-sm p-3 sm:p-4 rounded-xl border border-white/10 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-purple-500/20 rounded-lg text-purple-400 flex-shrink-0">
                 <Wifi className="w-6 h-6 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-                <div className="text-lg sm:text-sm text-slate-500 font-medium truncate">连接技术</div>
-                <div className="font-bold text-slate-900 text-xl sm:text-base">{COMPANY_PROFILE.techStack[1].items.length} 种生态</div>
+                <div className="text-lg sm:text-sm text-slate-400 font-medium truncate">连接技术</div>
+                <div className="font-bold text-white text-xl sm:text-base">{COMPANY_PROFILE.techStack[1].items.length} 种生态</div>
             </div>
          </div>
-         <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
-            <div className="p-2 sm:p-3 bg-green-100 rounded-lg text-green-600 flex-shrink-0">
+         <div className="bg-white/10 backdrop-blur-sm p-3 sm:p-4 rounded-xl border border-white/10 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-green-500/20 rounded-lg text-green-400 flex-shrink-0">
                 <Cpu className="w-6 h-6 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-                <div className="text-lg sm:text-sm text-slate-500 font-medium truncate">输出模组</div>
-                <div className="font-bold text-slate-900 text-xl sm:text-base">{COMPANY_PROFILE.techStack[2].items.length} 种类型</div>
+                <div className="text-lg sm:text-sm text-slate-400 font-medium truncate">输出模组</div>
+                <div className="font-bold text-white text-xl sm:text-base">{COMPANY_PROFILE.techStack[2].items.length} 种类型</div>
             </div>
          </div>
-         <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
-            <div className="p-2 sm:p-3 bg-orange-100 rounded-lg text-orange-600 flex-shrink-0">
+         <div className="bg-white/10 backdrop-blur-sm p-3 sm:p-4 rounded-xl border border-white/10 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-orange-500/20 rounded-lg text-orange-400 flex-shrink-0">
                 <Battery className="w-6 h-6 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-                <div className="text-lg sm:text-sm text-slate-500 font-medium truncate">现有产品线</div>
-                <div className="font-bold text-slate-900 text-xl sm:text-base">{COMPANY_PROFILE.existingProducts.length} 个 SKU</div>
+                <div className="text-lg sm:text-sm text-slate-400 font-medium truncate">现有产品线</div>
+                <div className="font-bold text-white text-xl sm:text-base">{COMPANY_PROFILE.existingProducts.length} 个 SKU</div>
             </div>
          </div>
       </div>
 
       {/* Main Content Area */}
       {!report && (
-        <div className="text-center py-12 sm:py-24 px-4 bg-white rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center transition-all">
+        <div className="text-center py-12 sm:py-24 px-4 bg-white/5 backdrop-blur-sm rounded-2xl border border-dashed border-white/20 flex flex-col items-center justify-center transition-all">
             
             {isAnalyzing ? (
                 <div className="py-8 sm:py-12 flex flex-col items-center animate-in fade-in zoom-in duration-300">
                     <div className="relative w-20 h-20 sm:w-20 sm:h-20 mb-4 sm:mb-6">
-                        <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
-                        <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-                        <Search className="absolute inset-0 m-auto w-8 h-8 sm:w-8 sm:h-8 text-blue-600 animate-pulse" />
+                        <div className="absolute inset-0 border-4 border-white/10 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+                        <Search className="absolute inset-0 m-auto w-8 h-8 sm:w-8 sm:h-8 text-blue-400 animate-pulse" />
                     </div>
-                    <h3 className="text-2xl sm:text-xl font-bold text-slate-800">正在扫描亚马逊市场...</h3>
-                    <p className="text-slate-500 mt-2 text-xl sm:text-base px-4">智能代理正在分析趋势与匹配技术栈</p>
+                    <h3 className="text-2xl sm:text-xl font-bold text-white">正在扫描亚马逊市场...</h3>
+                    <p className="text-slate-400 mt-2 text-xl sm:text-base px-4">智能代理正在分析趋势与匹配技术栈</p>
                 </div>
             ) : (
                 <div className="py-6 sm:py-8 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
                     <button 
                         onClick={onRunAnalysis}
-                        className="group relative flex items-center justify-center gap-3 sm:gap-4 px-8 sm:px-10 py-5 sm:py-5 min-h-[60px] sm:min-h-[56px] w-full sm:w-auto max-w-xs bg-blue-600 text-white text-2xl sm:text-xl font-bold rounded-2xl hover:bg-blue-700 active:bg-blue-800 transition-all shadow-xl shadow-blue-200 hover:shadow-2xl sm:hover:-translate-y-1 overflow-hidden mb-6 sm:mb-8 touch-target"
+                        className="group relative flex items-center justify-center gap-3 sm:gap-4 px-8 sm:px-10 py-5 sm:py-5 min-h-[60px] sm:min-h-[56px] w-full sm:w-auto max-w-xs bg-blue-600 text-white text-2xl sm:text-xl font-bold rounded-2xl hover:bg-blue-700 active:bg-blue-800 transition-all shadow-xl shadow-blue-900/50 hover:shadow-2xl hover:shadow-blue-900/30 sm:hover:-translate-y-1 overflow-hidden mb-6 sm:mb-8 touch-target"
                     >
                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                         <Search className="w-7 h-7 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform duration-300" />
                         <span className="relative">新品扫描</span>
                     </button>
-                    <p className="text-slate-500 max-w-md mx-auto leading-relaxed text-xl sm:text-base px-2">
-                        运行 <strong>新产品发现框架</strong>，代理将自动识别亚马逊上与我们技术栈高度匹配的产品机会。
+                    <p className="text-slate-400 max-w-md mx-auto leading-relaxed text-xl sm:text-base px-2">
+                        运行 <strong className="text-white">新产品发现框架</strong>，代理将自动识别亚马逊上与我们技术栈高度匹配的产品机会。
                     </p>
                 </div>
             )}
