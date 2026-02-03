@@ -34,51 +34,19 @@
 /* 单个星星 */
 .star {
   position: absolute;
-  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.5) 40%, rgba(255, 255, 255, 0) 70%);
   border-radius: 50%;
-  animation: twinkle var(--twinkle-duration, 3s) ease-in-out infinite, 
-             float var(--float-duration, 20s) ease-in-out infinite;
+  will-change: transform;
 }
 
-/* 星星闪烁动画 */
-@keyframes twinkle {
-  0%, 100% {
-    opacity: var(--star-opacity, 0.5);
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
+/* 蓝色星星 */
+.star-blue {
+  background: radial-gradient(circle, rgba(130, 170, 255, 1) 0%, rgba(130, 170, 255, 0.5) 40%, rgba(130, 170, 255, 0) 70%);
 }
 
-/* 星星漂浮动画 */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) translateX(0);
-  }
-  25% {
-    transform: translateY(-10px) translateX(5px);
-  }
-  50% {
-    transform: translateY(-5px) translateX(-5px);
-  }
-  75% {
-    transform: translateY(-15px) translateX(3px);
-  }
-}
-
-/* 添加一些较大的星星作为点缀 */
-.star:nth-child(5n) {
-  background: radial-gradient(circle, rgba(100, 149, 237, 1) 0%, rgba(100, 149, 237, 0) 70%);
-}
-
-.star:nth-child(7n) {
-  background: radial-gradient(circle, rgba(255, 223, 186, 1) 0%, rgba(255, 223, 186, 0) 70%);
-}
-
-.star:nth-child(11n) {
-  background: radial-gradient(circle, rgba(186, 225, 255, 1) 0%, rgba(186, 225, 255, 0) 70%);
+/* 暖色星星 */
+.star-warm {
+  background: radial-gradient(circle, rgba(255, 220, 180, 1) 0%, rgba(255, 220, 180, 0.5) 40%, rgba(255, 220, 180, 0) 70%);
 }
 
 /* Ensure full viewport height on mobile */
